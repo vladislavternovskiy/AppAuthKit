@@ -48,7 +48,7 @@ public struct FusionRequest<T, E: FusionAuthAPIError>: Requestable {
         let request = NSMutableURLRequest(url: url)
         request.httpMethod = method
         if !parameters.isEmpty {
-            if method.caseInsensitiveCompare("GET") == .orderedSame {
+            if method.caseInsensitiveCompare("GET") == .orderedSame || contentType == .urlEncoded {
                 var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: true)
                 var queryItems = urlComponents?.queryItems ?? []
                 let newQueryItems = parameters.map { URLQueryItem(name: $0.key, value: String(describing: $0.value)) }
@@ -69,6 +69,11 @@ public struct FusionRequest<T, E: FusionAuthAPIError>: Requestable {
         let request = self.request
 
         let task = session.dataTask(with: request, completionHandler: { data, response, error in
+#if DEBUG
+            if let data = data, let responseBody = String(data: data, encoding: .utf8) {
+                print(responseBody)
+            }
+#endif
             handler(FusionResponse(data: data, response: response as? HTTPURLResponse, error: error), callback)
         })
         task.resume()
