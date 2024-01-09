@@ -74,11 +74,9 @@ public struct FusionRequest<T, E: FusionAuthAPIError>: Requestable {
         let request = self.request
 
         let task = session.dataTask(with: request, completionHandler: { data, response, error in
-#if DEBUG
             if let data = data, let responseBody = String(data: data, encoding: .utf8) {
                 print(responseBody)
             }
-#endif
             handler(FusionResponse(data: data, response: response as? HTTPURLResponse, error: error), callback)
         })
         task.resume()
