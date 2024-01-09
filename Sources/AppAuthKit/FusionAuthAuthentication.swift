@@ -64,7 +64,9 @@ public struct FusionAuthAuthentication: Authentication {
         let payload: [String: Any] = [
             "client_id": clientId,
             "refresh_token": refreshToken,
-            "grant_type": "refresh_token"
+            "grant_type": "refresh_token",
+            "client_secret": clientSecret,
+            "scope": defaultScope
         ]
         let oauthToken = URL(string: "/oauth2/token", relativeTo: self.url)!
         return FusionRequest(session: session,
