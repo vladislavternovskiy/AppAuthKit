@@ -55,15 +55,16 @@ public struct FusionRequest<T, E: FusionAuthAPIError>: Requestable {
                 queryItems.append(contentsOf: newQueryItems)
                 urlComponents?.queryItems = queryItems
                 request.url = urlComponents?.url ?? url
-            } else if let httpBody = try? JSONSerialization.data(withJSONObject: parameters, options: []) {
-                request.httpBody = httpBody
+            } else {
+                switch contentType {
+                case .json:
+                    request.httpBody = try? JSONSerialization.data(withJSONObject: parameters, options: [])
+                case .urlEncoded:
+                    request.httpBody = parameters.percentEncoded()
+                }
             }
         }
         request.setValue(contentType.rawValue, forHTTPHeaderField: "Content-Type")
-        request.setValue(
-            "Basic MGJjY2Q2NGUtMmMzMy00ZTczLTgxNTktYzZlMzc1ZmM5OGRhOjYzNnRJVGt5dUVoeU9rX2wxU3lYRDcyVU0yT2RBSE00MmRqVFVYbUtqelU=",
-            forHTTPHeaderField: "Authorization"
-        )
         headers.forEach { name, value in request.setValue(value, forHTTPHeaderField: name) }
         return request as URLRequest
     }
