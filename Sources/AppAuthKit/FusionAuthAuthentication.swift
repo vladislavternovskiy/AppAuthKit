@@ -33,7 +33,7 @@ public struct FusionAuthAuthentication: Authentication {
             "username": username,
             "password": password,
             "client_id": clientId,
-            "clientSecret": clientSecret,
+            "client_secret": clientSecret,
             "grant_type": "password",
             "scope": defaultScope
         ]
