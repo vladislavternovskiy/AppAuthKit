@@ -8,20 +8,20 @@
 import Foundation
 
 private struct _StructCredentials {
-    let token: String
+    let accessToken: String
     let refreshToken: String?
-    let tokenExpirationInstant: Date
+    let expiresIn: Date
 }
 
 public final class Credentials: NSObject, Codable {
-    public let token: String
+    public let accessToken: String
     public let refreshToken: String?
-    public let tokenExpirationInstant: Date
+    public let expiresIn: Date
     
-    init(token: String, refreshToken: String?, tokenExpirationInstant: Date) {
-        self.token = token
+    init(accessToken: String, refreshToken: String?, expiresIn: Date) {
+        self.accessToken = accessToken
         self.refreshToken = refreshToken
-        self.tokenExpirationInstant = tokenExpirationInstant
+        self.expiresIn = expiresIn
     }
 }
 
@@ -31,20 +31,20 @@ extension Credentials: NSSecureCoding {
 
     /// `NSSecureCoding` decoding initializer.
     public convenience init?(coder aDecoder: NSCoder) {
-        let token = aDecoder.decodeObject(of: NSString.self, forKey: "token")
+        let accessToken = aDecoder.decodeObject(of: NSString.self, forKey: "accessToken")
         let refreshToken = aDecoder.decodeObject(of: NSString.self, forKey: "refreshToken")
-        let expiresIn = aDecoder.decodeObject(of: NSDate.self, forKey: "tokenExpirationInstant")
+        let expiresIn = aDecoder.decodeObject(of: NSDate.self, forKey: "expiresIn")
         
-        self.init(token: token as String? ?? "",
+        self.init(accessToken: accessToken as String? ?? "",
                   refreshToken: refreshToken as String? ?? "",
-                  tokenExpirationInstant: expiresIn as Date? ?? Date())
+                  expiresIn: expiresIn as Date? ?? Date())
     }
 
     /// `NSSecureCoding` encoding method.
     public func encode(with aCoder: NSCoder) {
-        aCoder.encode(self.token as NSString, forKey: "token")
-        aCoder.encode(self.refreshToken as NSString?, forKey: "refreshToken")
-        aCoder.encode(self.tokenExpirationInstant as NSDate, forKey: "tokenExpirationInstant")
+        aCoder.encode(accessToken as NSString, forKey: "accessToken")
+        aCoder.encode(refreshToken as NSString?, forKey: "refreshToken")
+        aCoder.encode(expiresIn as NSDate, forKey: "expiresIn")
     }
 
     /// Property that enables secure coding. Equals to `true`.

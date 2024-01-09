@@ -120,12 +120,12 @@ public struct CredentialsManager {
                         switch result {
                         case .success(let credentials):
                             let newCredentials = Credentials(
-                                token: credentials.token,
+                                accessToken: credentials.accessToken,
                                 refreshToken: credentials.refreshToken ?? refreshToken,
-                                tokenExpirationInstant: credentials.tokenExpirationInstant
+                                expiresIn: credentials.expiresIn
                             )
                             if self.willExpire(newCredentials, within: minTTL) {
-                                let tokenLifetime = Int(credentials.tokenExpirationInstant.timeIntervalSinceNow)
+                                let tokenLifetime = Int(credentials.expiresIn.timeIntervalSinceNow)
                                 let error = CredentialsManagerError(code: .largeMinTTL(minTTL: minTTL, lifetime: tokenLifetime))
                                 self.dispatchGroup.leave()
                                 callback(.failure(error))
@@ -148,11 +148,11 @@ public struct CredentialsManager {
     }
 
     func willExpire(_ credentials: Credentials, within ttl: Int) -> Bool {
-        return credentials.tokenExpirationInstant < Date(timeIntervalSinceNow: TimeInterval(ttl))
+        return credentials.expiresIn < Date(timeIntervalSinceNow: TimeInterval(ttl))
     }
 
     func hasExpired(_ credentials: Credentials) -> Bool {
-        return credentials.tokenExpirationInstant < Date()
+        return credentials.expiresIn < Date()
     }
 }
 
