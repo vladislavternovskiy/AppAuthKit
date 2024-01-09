@@ -60,6 +60,10 @@ public struct FusionRequest<T, E: FusionAuthAPIError>: Requestable {
             }
         }
         request.setValue(contentType.rawValue, forHTTPHeaderField: "Content-Type")
+        request.setValue(
+            "Basic MGJjY2Q2NGUtMmMzMy00ZTczLTgxNTktYzZlMzc1ZmM5OGRhOjYzNnRJVGt5dUVoeU9rX2wxU3lYRDcyVU0yT2RBSE00MmRqVFVYbUtqelU=",
+            forHTTPHeaderField: "Authorization"
+        )
         headers.forEach { name, value in request.setValue(value, forHTTPHeaderField: name) }
         return request as URLRequest
     }
