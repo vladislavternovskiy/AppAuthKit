@@ -49,8 +49,7 @@ public struct FusionAuthAuthentication: Authentication {
     public func forgotPassword(email: String) -> FusionRequest<Void, AuthenticationError> {
         let payload: [String: Any] = [
             "loginId": email,
-            "applicationId": clientId,
-            "sendForgotPasswordEmail": true
+            "applicationId": clientId
         ]
         let resetPassword = URL(string: "/api/user/forgot-password", relativeTo: self.url)!
         return FusionRequest(session: session,
