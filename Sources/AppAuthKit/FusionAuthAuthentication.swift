@@ -9,6 +9,18 @@ import Foundation
 
 public struct FusionAuthAuthentication: Authentication {
     
+    public struct Configuration {
+        let clientId: String
+        let clientSecret: String
+        let url: URL
+        
+        public init(clientId: String, clientSecret: String, url: URL) {
+            self.clientId = clientId
+            self.clientSecret = clientSecret
+            self.url = url
+        }
+    }
+    
     public let clientId: String
     public let clientSecret: String
     public let url: URL
@@ -16,10 +28,10 @@ public struct FusionAuthAuthentication: Authentication {
     
     let session: URLSession
     
-    public init(clientId: String, clientSecret: String, url: URL, session: URLSession = URLSession.shared) {
-        self.clientId = clientId
-        self.clientSecret = clientSecret
-        self.url = url
+    public init(config: Configuration, session: URLSession = URLSession.shared) {
+        self.clientId = config.clientId
+        self.clientSecret = config.clientSecret
+        self.url = config.url
         self.session = session
     }
     
