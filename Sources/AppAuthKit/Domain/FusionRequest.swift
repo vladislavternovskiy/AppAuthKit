@@ -72,10 +72,13 @@ public struct FusionRequest<T, E: FusionAuthAPIError>: Requestable {
     public func start(_ callback: @escaping Callback) {
         let handler = self.handle
         let request = self.request
-
+        
+        if let httpBody = request.httpBody, let requestBody = String(data: httpBody, encoding: .utf8) {
+            debugPrint("🟢 Response Body: " + requestBody)
+        }
         let task = session.dataTask(with: request, completionHandler: { data, response, error in
             if let data = data, let responseBody = String(data: data, encoding: .utf8) {
-                print(responseBody)
+                debugPrint("🔵 Response Body: " + responseBody)
             }
             handler(FusionResponse(data: data, response: response as? HTTPURLResponse, error: error), callback)
         })
