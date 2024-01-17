@@ -73,8 +73,11 @@ public struct FusionRequest<T, E: FusionAuthAPIError>: Requestable {
         let handler = self.handle
         let request = self.request
         
+        if let headers = request.allHTTPHeaderFields?.debugDescription {
+            debugPrint("🟢 Request Headers: " + headers)
+        }
         if let httpBody = request.httpBody, let requestBody = String(data: httpBody, encoding: .utf8) {
-            debugPrint("🟢 Response Body: " + requestBody)
+            debugPrint("🟢 Request Body: " + requestBody)
         }
         let task = session.dataTask(with: request, completionHandler: { data, response, error in
             if let data = data, let responseBody = String(data: data, encoding: .utf8) {
