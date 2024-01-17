@@ -45,10 +45,10 @@ public struct CredentialsManager {
                   _ = self.clear()
                   return callback(.success(()))
         }
-
+        let contentType = ContentType.json
         self.authentication
-            .revoke(refreshToken: refreshToken)
-            .headers(headers)
+            .revoke(refreshToken: refreshToken, contentType: contentType)
+            .headers(headers, contentType: contentType)
             .start { result in
                 switch result {
                 case .failure(let error):
@@ -112,10 +112,11 @@ public struct CredentialsManager {
                     return callback(.failure(.noRefreshToken))
                 }
 
+                let contentType = ContentType.urlEncoded
                 self.authentication
-                    .renew(withRefreshToken: refreshToken)
-                    .parameters(parameters)
-                    .headers(headers)
+                    .renew(withRefreshToken: refreshToken, contentType: contentType)
+                    .parameters(parameters, contentType: contentType)
+                    .headers(headers, contentType: contentType)
                     .start { result in
                         switch result {
                         case .success(let credentials):

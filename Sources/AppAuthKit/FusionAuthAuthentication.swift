@@ -35,11 +35,7 @@ public struct FusionAuthAuthentication: Authentication {
         self.session = session
     }
     
-    public func login(email: String, code: String) -> FusionRequest<Credentials, AuthenticationError> {
-        return login(username: email, otp: code)
-    }
-    
-    public func login(usernameOrEmail username: String, password: String) -> FusionRequest<Credentials, AuthenticationError> {
+    public func login(usernameOrEmail username: String, password: String, contentType: ContentType) -> FusionRequest<Credentials, AuthenticationError> {
         let url = URL(string: "/oauth2/token", relativeTo: self.url)!
         let payload: [String: Any] = [
             "username": username,
@@ -55,10 +51,10 @@ public struct FusionAuthAuthentication: Authentication {
                              method: "POST",
                              handle: codable,
                              parameters: payload,
-                             contentType: .urlEncoded)
+                             contentType: contentType)
     }
     
-    public func forgotPassword(email: String) -> FusionRequest<Void, AuthenticationError> {
+    public func forgotPassword(email: String, contentType: ContentType) -> FusionRequest<Void, AuthenticationError> {
         let payload: [String: Any] = [
             "loginId": email,
             "applicationId": clientId
@@ -68,10 +64,11 @@ public struct FusionAuthAuthentication: Authentication {
                              url: resetPassword,
                              method: "POST",
                              handle: noBody,
-                             parameters: payload)
+                             parameters: payload,
+                             contentType: contentType)
     }
     
-    public func renew(withRefreshToken refreshToken: String) -> FusionRequest<Credentials, AuthenticationError> {
+    public func renew(withRefreshToken refreshToken: String, contentType: ContentType) -> FusionRequest<Credentials, AuthenticationError> {
         let payload: [String: Any] = [
             "client_id": clientId,
             "refresh_token": refreshToken,
@@ -85,11 +82,11 @@ public struct FusionAuthAuthentication: Authentication {
                              method: "POST",
                              handle: codable,
                              parameters: payload,
-                             contentType: .urlEncoded
+                             contentType: contentType
         )
     }
     
-    public func revoke(refreshToken: String) -> FusionRequest<Void, AuthenticationError> {
+    public func revoke(refreshToken: String, contentType: ContentType) -> FusionRequest<Void, AuthenticationError> {
         let payload: [String: Any] = [
             "refresh_token": refreshToken,
             "global": true
@@ -99,25 +96,7 @@ public struct FusionAuthAuthentication: Authentication {
                              url: oauthToken,
                              method: "POST",
                              handle: noBody,
-                             parameters: payload)
-    }
-}
-
-// MARK: - Private Methods
-
-private extension FusionAuthAuthentication {
-    
-    func login(username: String, otp: String) -> FusionRequest<Credentials, AuthenticationError> {
-        let url = URL(string: "/oauth/token", relativeTo: self.url)!
-        let payload: [String: Any] = [
-            "username": username,
-            "otp": otp,
-            "client_id": self.clientId
-        ]
-        return FusionRequest(session: session,
-                             url: url,
-                             method: "POST",
-                             handle: codable,
-                             parameters: payload)
+                             parameters: payload,
+                             contentType: contentType)
     }
 }
