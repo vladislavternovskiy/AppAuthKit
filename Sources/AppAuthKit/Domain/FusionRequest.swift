@@ -15,7 +15,7 @@ protocol Requestable {
     func start(_ callback: @escaping (Result<ResultType, ErrorType>) -> Void)
 }
 
-enum ContentType: String {
+public enum ContentType: String {
     case json = "application/json"
     case urlEncoded = "application/x-www-form-urlencoded"
 }
@@ -34,7 +34,7 @@ public struct FusionRequest<T, E: FusionAuthAPIError>: Requestable {
     let headers: [String: String]
     let contentType: ContentType
 
-    init(session: URLSession, url: URL, method: String, handle: @escaping (FusionResponse<E>, Callback) -> Void, parameters: [String: Any] = [:], headers: [String: String] = [:], contentType: ContentType = .json) {
+    init(session: URLSession, url: URL, method: String, handle: @escaping (FusionResponse<E>, Callback) -> Void, parameters: [String: Any] = [:], headers: [String: String] = [:], contentType: ContentType) {
         self.session = session
         self.url = url
         self.method = method
@@ -72,26 +72,48 @@ public struct FusionRequest<T, E: FusionAuthAPIError>: Requestable {
     public func start(_ callback: @escaping Callback) {
         let handler = self.handle
         let request = self.request
-
+        
+        if let headers = request.allHTTPHeaderFields?.debugDescription {
+            debugPrint("🟢 Request Headers: " + headers)
+        }
+        if let httpBody = request.httpBody, let requestBody = String(data: httpBody, encoding: .utf8) {
+            debugPrint("🟢 Request Body: " + requestBody)
+        }
         let task = session.dataTask(with: request, completionHandler: { data, response, error in
             if let data = data, let responseBody = String(data: data, encoding: .utf8) {
-                print(responseBody)
+                debugPrint("🔵 Response Body: " + responseBody)
             }
             handler(FusionResponse(data: data, response: response as? HTTPURLResponse, error: error), callback)
         })
         task.resume()
     }
 
-    public func parameters(_ extraParameters: [String: Any]) -> Self {
+    public func parameters(_ extraParameters: [String: Any], contentType: ContentType) -> Self {
         let parameters = extraParameters.merging(self.parameters) {(current, _) in current}
 
-        return FusionRequest(session: self.session, url: self.url, method: self.method, handle: self.handle, parameters: parameters, headers: self.headers)
+        return FusionRequest(
+            session: self.session,
+            url: self.url,
+            method: self.method,
+            handle: self.handle,
+            parameters: parameters,
+            headers: self.headers, 
+            contentType: contentType
+        )
     }
 
-    public func headers(_ extraHeaders: [String: String]) -> Self {
+    public func headers(_ extraHeaders: [String: String], contentType: ContentType) -> Self {
         let headers = extraHeaders.merging(self.headers) {(current, _) in current}
 
-        return FusionRequest(session: self.session, url: self.url, method: self.method, handle: self.handle, parameters: self.parameters, headers: headers)
+        return FusionRequest(
+            session: self.session,
+            url: self.url,
+            method: self.method,
+            handle: self.handle,
+            parameters: self.parameters,
+            headers: headers,
+            contentType: contentType
+        )
     }
 }
 
