@@ -9,9 +9,6 @@ import Foundation
 
 public protocol Authentication {
 
-    var clientId: String { get }
-    var url: URL { get }
-
     // MARK: - Methods
     func startPasswordless(email: String) -> FusionRequest<Void, AuthenticationError>
     

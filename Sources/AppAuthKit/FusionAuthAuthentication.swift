@@ -13,18 +13,21 @@ public struct FusionAuthAuthentication: Authentication {
         let clientId: String
         let clientSecret: String
         let url: URL
+        let apiKey: String
         
-        public init(clientId: String, clientSecret: String, url: URL) {
+        public init(clientId: String, clientSecret: String, url: URL, apiKey: String = "") {
             self.clientId = clientId
             self.clientSecret = clientSecret
             self.url = url
+            self.apiKey = apiKey
         }
     }
     
-    public let clientId: String
-    public let clientSecret: String
-    public let url: URL
-    public let defaultScope = "offline_access openid"
+    private let clientId: String
+    private let clientSecret: String
+    private let apiKey: String
+    private let url: URL
+    private let defaultScope = "offline_access openid"
     
     let session: URLSession
     
@@ -32,6 +35,7 @@ public struct FusionAuthAuthentication: Authentication {
         self.clientId = config.clientId
         self.clientSecret = config.clientSecret
         self.url = config.url
+        self.apiKey = config.apiKey
         self.session = session
     }
     
@@ -47,6 +51,7 @@ public struct FusionAuthAuthentication: Authentication {
                              handle: noBody,
                              parameters: payload,
                              contentType: .json)
+        .headers(["Authorization": apiKey])
     }
     
     public func login(otp: String) -> FusionRequest<Credentials, AuthenticationError> {
@@ -61,6 +66,7 @@ public struct FusionAuthAuthentication: Authentication {
                              handle: codable,
                              parameters: payload,
                              contentType: .json)
+        .headers(["Authorization": apiKey])
     }
     
     public func login(usernameOrEmail username: String, password: String) -> FusionRequest<Credentials, AuthenticationError> {
