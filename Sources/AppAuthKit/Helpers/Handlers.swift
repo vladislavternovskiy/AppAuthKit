@@ -59,7 +59,10 @@ func authenticationObject<T: JSONObjectPayload>(from response: FusionResponse<Au
 
 func noBody(from response: FusionResponse<AuthenticationError>, callback: FusionRequest<Void, AuthenticationError>.Callback) {
     do {
-        _ = try response.result()
+        let result = try response.result()
+        if let dict = result as? [String: Any] {
+            debugPrint(dict)
+        }
         callback(.success(()))
     } catch let error as AuthenticationError where error.code == emptyBodyError {
         callback(.success(()))

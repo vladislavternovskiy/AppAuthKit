@@ -88,7 +88,7 @@ public struct FusionRequest<T, E: FusionAuthAPIError>: Requestable {
         task.resume()
     }
 
-    public func parameters(_ extraParameters: [String: Any], contentType: ContentType) -> Self {
+    public func parameters(_ extraParameters: [String: Any]) -> Self {
         let parameters = extraParameters.merging(self.parameters) {(current, _) in current}
 
         return FusionRequest(
@@ -98,11 +98,11 @@ public struct FusionRequest<T, E: FusionAuthAPIError>: Requestable {
             handle: self.handle,
             parameters: parameters,
             headers: self.headers, 
-            contentType: contentType
+            contentType: self.contentType
         )
     }
 
-    public func headers(_ extraHeaders: [String: String], contentType: ContentType) -> Self {
+    public func headers(_ extraHeaders: [String: String]) -> Self {
         let headers = extraHeaders.merging(self.headers) {(current, _) in current}
 
         return FusionRequest(
@@ -112,7 +112,7 @@ public struct FusionRequest<T, E: FusionAuthAPIError>: Requestable {
             handle: self.handle,
             parameters: self.parameters,
             headers: headers,
-            contentType: contentType
+            contentType: self.contentType
         )
     }
 }
