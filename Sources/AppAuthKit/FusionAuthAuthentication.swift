@@ -54,18 +54,22 @@ public struct FusionAuthAuthentication: Authentication {
         .headers(["Authorization": apiKey])
     }
     
-    public func login(otp: String) -> FusionRequest<Credentials, AuthenticationError> {
+    public func login(otp: String) -> FusionRequest<OtpCredentials, AuthenticationError> {
         let url = URL(string: "/api/passwordless/login", relativeTo: self.url)!
         let payload: [String: Any] = [
             "applicationId": clientId,
             "code": otp
         ]
-        return FusionRequest(session: session,
-                             url: url,
-                             method: "POST",
-                             handle: codable,
-                             parameters: payload,
-                             contentType: .json)
+        return FusionRequest(
+            session: session,
+            url: url,
+            method: "POST",
+            handle: { response, callback in
+                codable(from: response, dateDecodingStrategy: .since1970, callback: callback)
+            },
+            parameters: payload,
+            contentType: .json
+        )
         .headers(["Authorization": apiKey])
     }
     

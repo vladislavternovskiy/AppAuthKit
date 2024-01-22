@@ -12,7 +12,7 @@ public protocol Authentication {
     // MARK: - Methods
     func startPasswordless(email: String) -> FusionRequest<Void, AuthenticationError>
     
-    func login(otp: String) -> FusionRequest<Credentials, AuthenticationError>
+    func login(otp: String) -> FusionRequest<OtpCredentials, AuthenticationError>
     
     func login(usernameOrEmail username: String, password: String) -> FusionRequest<Credentials, AuthenticationError>
 
