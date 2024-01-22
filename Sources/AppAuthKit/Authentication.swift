@@ -9,15 +9,16 @@ import Foundation
 
 public protocol Authentication {
 
-    var clientId: String { get }
-    var url: URL { get }
-
     // MARK: - Methods
-    func login(usernameOrEmail username: String, password: String, contentType: ContentType) -> FusionRequest<Credentials, AuthenticationError>
-
-    func forgotPassword(email: String, contentType: ContentType) -> FusionRequest<Void, AuthenticationError>
+    func startPasswordless(email: String) -> FusionRequest<Void, AuthenticationError>
     
-    func renew(withRefreshToken refreshToken: String, contentType: ContentType) -> FusionRequest<Credentials, AuthenticationError>
+    func login(otp: String) -> FusionRequest<OtpCredentials, AuthenticationError>
+    
+    func login(usernameOrEmail username: String, password: String) -> FusionRequest<Credentials, AuthenticationError>
 
-    func revoke(refreshToken: String, contentType: ContentType) -> FusionRequest<Void, AuthenticationError>
+    func forgotPassword(email: String) -> FusionRequest<Void, AuthenticationError>
+    
+    func renew(withRefreshToken refreshToken: String) -> FusionRequest<Credentials, AuthenticationError>
+
+    func revoke(refreshToken: String) -> FusionRequest<Void, AuthenticationError>
 }

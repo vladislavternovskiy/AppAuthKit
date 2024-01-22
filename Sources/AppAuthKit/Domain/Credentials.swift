@@ -24,7 +24,13 @@ public final class Credentials: NSObject, Codable {
         self.expiresIn = expiresIn
     }
     
-    private enum CodingKeys: String, CodingKey{
+    init(otpCredentials: OtpCredentials) {
+        self.accessToken = otpCredentials.token
+        self.refreshToken = otpCredentials.refreshToken
+        self.expiresIn = otpCredentials.tokenExpirationInstant
+    }
+    
+    private enum CodingKeys: String, CodingKey {
         case accessToken = "access_token"
         case expiresIn = "expires_in"
         case refreshToken = "refresh_token"

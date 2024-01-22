@@ -7,6 +7,11 @@
 
 import Foundation
 
+enum DateDecodingStrategy {
+    case sinceNow
+    case since1970
+}
+
 func plainJson(from response: FusionResponse<AuthenticationError>, callback: FusionRequest<[String: Any], AuthenticationError>.Callback) {
     do {
         if let dictionary = try response.result() as? [String: Any] {
@@ -21,16 +26,32 @@ func plainJson(from response: FusionResponse<AuthenticationError>, callback: Fus
     }
 }
 
-func codable<T: Codable>(from response: FusionResponse<AuthenticationError>, callback: FusionRequest<T, AuthenticationError>.Callback) {
+func codable<T: Codable>(
+    from response: FusionResponse<AuthenticationError>,
+    callback: FusionRequest<T, AuthenticationError>.Callback
+) {
+    codable(from: response, dateDecodingStrategy: .sinceNow, callback: callback)
+}
+
+func codable<T: Codable>(
+    from response: FusionResponse<AuthenticationError>,
+    dateDecodingStrategy: DateDecodingStrategy,
+    callback: FusionRequest<T, AuthenticationError>.Callback) {
     do {
         if let dictionary = try response.result() as? [String: Any] {
             let data = try JSONSerialization.data(withJSONObject: dictionary)
             let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .custom { decoder -> Date in
-                let container = try decoder.singleValueContainer()
-                let expirationPeriod = try container.decode(TimeInterval.self)
-                return Date().addingTimeInterval(expirationPeriod)
+            switch dateDecodingStrategy {
+            case .since1970:
+                decoder.dateDecodingStrategy = .millisecondsSince1970
+            case .sinceNow:
+                decoder.dateDecodingStrategy = .custom { decoder -> Date in
+                    let container = try decoder.singleValueContainer()
+                    let expirationPeriod = try container.decode(TimeInterval.self)
+                    return Date().addingTimeInterval(expirationPeriod)
+                }
             }
+            
             let decodedObject = try decoder.decode(T.self, from: data)
             callback(.success(decodedObject))
         } else {
@@ -59,7 +80,10 @@ func authenticationObject<T: JSONObjectPayload>(from response: FusionResponse<Au
 
 func noBody(from response: FusionResponse<AuthenticationError>, callback: FusionRequest<Void, AuthenticationError>.Callback) {
     do {
-        _ = try response.result()
+        let result = try response.result()
+        if let dict = result as? [String: Any] {
+            debugPrint(dict)
+        }
         callback(.success(()))
     } catch let error as AuthenticationError where error.code == emptyBodyError {
         callback(.success(()))
