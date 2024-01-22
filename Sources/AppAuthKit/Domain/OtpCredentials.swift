@@ -1,13 +1,17 @@
 import Foundation
 
 public final class OtpCredentials: Codable {
-    public let token: String
-    public let refreshToken: String?
-    public let tokenExpirationInstant: Date
+    let token: String
+    let refreshToken: String?
+    let tokenExpirationInstant: Date
     
     private enum CodingKeys: String, CodingKey {
         case token
         case tokenExpirationInstant
         case refreshToken
+    }
+    
+    public func mapToCredentials() -> Credentials {
+        .init(otpCredentials: self)
     }
 }
