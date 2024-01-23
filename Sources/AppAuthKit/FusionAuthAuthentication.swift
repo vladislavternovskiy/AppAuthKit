@@ -39,11 +39,25 @@ public struct FusionAuthAuthentication: Authentication {
         self.session = session
     }
     
-    public func startPasswordless(email: String) -> FusionRequest<Void, AuthenticationError> {
+    public func startPasswordless(email: String) -> FusionRequest<OtpCode, AuthenticationError> {
         let url = URL(string: "/api/passwordless/start", relativeTo: self.url)!
         let payload: [String: Any] = [
             "applicationId": clientId,
             "loginId": email
+        ]
+        return FusionRequest(session: session,
+                             url: url,
+                             method: "POST",
+                             handle: codable,
+                             parameters: payload,
+                             contentType: .json)
+        .headers(["Authorization": apiKey])
+    }
+    
+    public func sendPasswordless(code: String) -> FusionRequest<Void, AuthenticationError> {
+        let url = URL(string: "/api/passwordless/send", relativeTo: self.url)!
+        let payload: [String: Any] = [
+            "code": code
         ]
         return FusionRequest(session: session,
                              url: url,

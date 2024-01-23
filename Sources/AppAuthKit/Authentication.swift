@@ -10,7 +10,9 @@ import Foundation
 public protocol Authentication {
 
     // MARK: - Methods
-    func startPasswordless(email: String) -> FusionRequest<Void, AuthenticationError>
+    func startPasswordless(email: String) -> FusionRequest<OtpCode, AuthenticationError>
+    
+    func sendPasswordless(code: String) -> FusionRequest<Void, AuthenticationError>
     
     func login(otp: String) -> FusionRequest<OtpCredentials, AuthenticationError>
     
