@@ -138,6 +138,21 @@ public struct FusionAuthAuthentication: Authentication {
         )
     }
     
+    public func renewPasswordless(withRefreshToken refreshToken: String) -> FusionRequest<OtpCredentials, AuthenticationError> {
+        let payload: [String: Any] = [
+            "refresh_token": refreshToken
+        ]
+        let oauthToken = URL(string: "/api/jwt/refresh", relativeTo: self.url)!
+        return FusionRequest(session: session,
+                             url: oauthToken,
+                             method: "POST",
+                             handle: codable,
+                             parameters: payload,
+                             contentType: .urlEncoded
+        )
+        .headers(["Authorization": apiKey])
+    }
+    
     public func revoke(refreshToken: String) -> FusionRequest<Void, AuthenticationError> {
         let payload: [String: Any] = [
             "refresh_token": refreshToken,

@@ -3,7 +3,7 @@ import Foundation
 public final class OtpCredentials: Codable {
     let token: String
     let refreshToken: String?
-    let tokenExpirationInstant: Date
+    let tokenExpirationInstant: Date?
     
     private enum CodingKeys: String, CodingKey {
         case token
