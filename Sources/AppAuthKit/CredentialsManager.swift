@@ -61,7 +61,7 @@ public struct CredentialsManager {
 
     public func hasValid(minTTL: Int = 0) -> Bool {
         guard let credentials = self.retrieveCredentials() else { return false }
-        return !self.hasExpired(credentials) && !self.willExpire(credentials, within: minTTL)
+        return !hasExpired(credentials) && !willExpire(credentials, within: minTTL)
     }
 
     public func canRenew() -> Bool {
@@ -73,25 +73,47 @@ public struct CredentialsManager {
                             parameters: [String: Any] = [:],
                             headers: [String: String] = [:],
                             callback: @escaping (CredentialsManagerResult<Credentials>) -> Void) {
-        self.retrieveCredentials(minTTL: minTTL, parameters: parameters, headers: headers, callback: callback)
+        retrieveCredentials(minTTL: minTTL, parameters: parameters, headers: headers, callback: callback)
+    }
+    
+    public func credentialsPasswordless(
+        minTTL: Int = 0,
+        parameters: [String: Any] = [:],
+        headers: [String: String] = [:],
+        callback: @escaping (CredentialsManagerResult<Credentials>) -> Void
+    ) {
+        retrievePasswordlessCredentials(minTTL: minTTL, parameters: parameters, headers: headers, callback: callback)
     }
 
     public func renew(parameters: [String: Any] = [:],
                       headers: [String: String] = [:],
                       callback: @escaping (CredentialsManagerResult<Credentials>) -> Void) {
-        self.retrieveCredentials(parameters: parameters, headers: headers, forceRenewal: true, callback: callback)
+        retrieveCredentials(parameters: parameters, headers: headers, forceRenewal: true, callback: callback)
+    }
+    
+    public func renewPasswordless(parameters: [String: Any] = [:],
+                                  headers: [String: String] = [:],
+                                  callback: @escaping (CredentialsManagerResult<Credentials>) -> Void) {
+        retrievePasswordlessCredentials(
+            parameters: parameters, 
+            headers: headers, 
+            forceRenewal: true,
+            callback: callback
+        )
     }
 
     private func retrieveCredentials() -> Credentials? {
-        guard let data = self.storage.getEntry(forKey: self.storeKey) else { return nil }
+        guard let data = storage.getEntry(forKey: storeKey) else { return nil }
         return try? NSKeyedUnarchiver.unarchivedObject(ofClass: Credentials.self, from: data)
     }
 
-    private func retrieveCredentials(minTTL: Int = 0,
-                                     parameters: [String: Any],
-                                     headers: [String: String],
-                                     forceRenewal: Bool = false,
-                                     callback: @escaping (CredentialsManagerResult<Credentials>) -> Void) {
+    private func retrieveCredentials(
+        minTTL: Int = 0,
+        parameters: [String: Any],
+        headers: [String: String],
+        forceRenewal: Bool = false,
+        callback: @escaping (CredentialsManagerResult<Credentials>) -> Void
+    ) {
         self.dispatchQueue.async {
             self.dispatchGroup.enter()
 
@@ -110,7 +132,7 @@ public struct CredentialsManager {
                     self.dispatchGroup.leave()
                     return callback(.failure(.noRefreshToken))
                 }
-
+                
                 self.authentication
                     .renew(withRefreshToken: refreshToken)
                     .parameters(parameters)
@@ -125,6 +147,63 @@ public struct CredentialsManager {
                             )
                             if self.willExpire(newCredentials, within: minTTL) {
                                 let tokenLifetime = Int(credentials.expiresIn.timeIntervalSinceNow)
+                                let error = CredentialsManagerError(code: .largeMinTTL(minTTL: minTTL, lifetime: tokenLifetime))
+                                self.dispatchGroup.leave()
+                                callback(.failure(error))
+                            } else if !self.store(credentials: newCredentials) {
+                                self.dispatchGroup.leave()
+                                callback(.failure(CredentialsManagerError(code: .storeFailed)))
+                            } else {
+                                self.dispatchGroup.leave()
+                                callback(.success(newCredentials))
+                            }
+                        case .failure(let error):
+                            self.dispatchGroup.leave()
+                            callback(.failure(CredentialsManagerError(code: .renewFailed, cause: error)))
+                        }
+                    }
+            }
+
+            self.dispatchGroup.wait()
+        }
+    }
+    
+    private func retrievePasswordlessCredentials(
+        minTTL: Int = 0,
+        parameters: [String: Any],
+        headers: [String: String],
+        forceRenewal: Bool = false,
+        callback: @escaping (CredentialsManagerResult<Credentials>) -> Void
+    ) {
+        self.dispatchQueue.async {
+            self.dispatchGroup.enter()
+
+            DispatchQueue.global(qos: .userInitiated).async {
+                guard let credentials = retrieveCredentials() else {
+                    self.dispatchGroup.leave()
+                    return callback(.failure(.noCredentials))
+                }
+                guard forceRenewal ||
+                      self.hasExpired(credentials) ||
+                      self.willExpire(credentials, within: minTTL) else {
+                    self.dispatchGroup.leave()
+                    return callback(.success(credentials))
+                }
+                guard let refreshToken = credentials.refreshToken else {
+                    self.dispatchGroup.leave()
+                    return callback(.failure(.noRefreshToken))
+                }
+                
+                self.authentication
+                    .renewPasswordless(withRefreshToken: refreshToken)
+                    .parameters(parameters)
+                    .headers(headers)
+                    .start { result in
+                        switch result {
+                        case .success(let credentials):
+                            let newCredentials = Credentials(otpCredentials: credentials)
+                            if self.willExpire(newCredentials, within: minTTL) {
+                                let tokenLifetime = Int(newCredentials.expiresIn.timeIntervalSinceNow)
                                 let error = CredentialsManagerError(code: .largeMinTTL(minTTL: minTTL, lifetime: tokenLifetime))
                                 self.dispatchGroup.leave()
                                 callback(.failure(error))
@@ -178,6 +257,19 @@ public extension CredentialsManager {
             }
         }.eraseToAnyPublisher()
     }
+    
+    func credentialsPasswordless(minTTL: Int = 0,
+                                 parameters: [String: Any] = [:],
+                                 headers: [String: String] = [:]) -> AnyPublisher<Credentials, CredentialsManagerError> {
+        return Deferred {
+            Future { callback in
+                return self.credentialsPasswordless(minTTL: minTTL,
+                                                    parameters: parameters,
+                                                    headers: headers,
+                                                    callback: callback)
+            }
+        }.eraseToAnyPublisher()
+    }
 
     func renew(parameters: [String: Any] = [:],
                headers: [String: String] = [:]) -> AnyPublisher<Credentials, CredentialsManagerError> {
@@ -188,6 +280,16 @@ public extension CredentialsManager {
         }.eraseToAnyPublisher()
     }
 
+    func renewPasswordless(
+        parameters: [String: Any] = [:],
+        headers: [String: String] = [:]
+    ) -> AnyPublisher<Credentials, CredentialsManagerError> {
+        return Deferred {
+            Future { callback in
+                return self.renewPasswordless(parameters: parameters, headers: headers, callback: callback)
+            }
+        }.eraseToAnyPublisher()
+    }
 }
 
 // MARK: - Async/Await
@@ -216,11 +318,37 @@ public extension CredentialsManager {
                              callback: continuation.resume)
         }
     }
+    
+    /// Retrieves credentials from the Keychain and yields new credentials using the refresh token if the access token
+    /// is expired. Otherwise, return the retrieved credentials as they are not expired. Renewed credentials will be
+    /// stored in the Keychain. **This method is thread-safe**.
+    func credentialsPasswordless(
+        minTTL: Int = 0,
+        parameters: [String: Any] = [:],
+        headers: [String: String] = [:]
+    ) async throws -> Credentials {
+        return try await withCheckedThrowingContinuation { continuation in
+            self.credentialsPasswordless(minTTL: minTTL,
+                                         parameters: parameters,
+                                         headers: headers,
+                                         callback: continuation.resume)
+        }
+    }
 
     /// Renews credentials using the refresh token and stores them in the Keychain. **This method is thread-safe**.
     func renew(parameters: [String: Any] = [:], headers: [String: String] = [:]) async throws -> Credentials {
         return try await withCheckedThrowingContinuation { continuation in
             self.renew(parameters: parameters, headers: headers, callback: continuation.resume)
+        }
+    }
+    
+    /// Renews passwordless auth credentials using the refresh token and stores them in the Keychain. **This method is thread-safe**.
+    func renewPasswordless(
+        parameters: [String: Any] = [:],
+        headers: [String: String] = [:]
+    ) async throws -> Credentials {
+        return try await withCheckedThrowingContinuation { continuation in
+            self.renewPasswordless(parameters: parameters, headers: headers, callback: continuation.resume)
         }
     }
 
