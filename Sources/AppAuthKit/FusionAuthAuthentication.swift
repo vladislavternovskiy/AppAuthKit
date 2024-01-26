@@ -148,7 +148,7 @@ public struct FusionAuthAuthentication: Authentication {
                              method: "POST",
                              handle: codable,
                              parameters: payload,
-                             contentType: .urlEncoded
+                             contentType: .json
         )
         .headers(["Authorization": apiKey])
     }
