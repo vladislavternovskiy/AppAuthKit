@@ -27,7 +27,7 @@ public final class Credentials: NSObject, Codable {
     init(otpCredentials: OtpCredentials) {
         self.accessToken = otpCredentials.token
         self.refreshToken = otpCredentials.refreshToken
-        self.expiresIn = otpCredentials.tokenExpirationInstant
+        self.expiresIn = otpCredentials.tokenExpirationInstant ?? Date().addingTimeInterval(60*60*24*365)
     }
     
     private enum CodingKeys: String, CodingKey {
