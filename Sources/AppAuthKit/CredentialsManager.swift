@@ -12,11 +12,11 @@ public struct CredentialsManager {
 
     private let storage: CredentialsStorage
     private let storeKey: String
-    private let authentication: Authentication
+    private let authentication: Renewable
     private let dispatchQueue = DispatchQueue(label: "com.authKit.credentialsmanager.serial")
     private let dispatchGroup = DispatchGroup()
 
-    public init(authentication: Authentication,
+    public init(authentication: Renewable,
                 storeKey: String = "credentials",
                 storage: CredentialsStorage = SimpleKeychain()) {
         self.storeKey = storeKey

@@ -6,7 +6,15 @@
 
 import Foundation
 
-public protocol Authentication {
+public protocol Renewable {
+    func renew(withRefreshToken refreshToken: String) -> FusionRequest<Credentials, AuthenticationError>
+    
+    func renewPasswordless(withRefreshToken refreshToken: String) -> FusionRequest<OtpCredentials, AuthenticationError>
+    
+    func revoke(refreshToken: String) -> FusionRequest<Void, AuthenticationError>
+}
+
+public protocol Authentication: Renewable {
 
     // MARK: - Methods
     func startPasswordless(email: String) -> FusionRequest<OtpCode, AuthenticationError>
@@ -18,10 +26,4 @@ public protocol Authentication {
     func login(usernameOrEmail username: String, password: String) -> FusionRequest<Credentials, AuthenticationError>
 
     func forgotPassword(email: String) -> FusionRequest<Void, AuthenticationError>
-    
-    func renew(withRefreshToken refreshToken: String) -> FusionRequest<Credentials, AuthenticationError>
-    
-    func renewPasswordless(withRefreshToken refreshToken: String) -> FusionRequest<OtpCredentials, AuthenticationError>
-
-    func revoke(refreshToken: String) -> FusionRequest<Void, AuthenticationError>
 }
