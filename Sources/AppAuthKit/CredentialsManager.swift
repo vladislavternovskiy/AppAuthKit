@@ -1,6 +1,5 @@
 //
 //  CredentialsManager.swift
-//  CheckInRebornDataProviders
 //
 //  Created by Vladyslav Ternovskyi on 07.01.2024.
 //
@@ -14,7 +13,7 @@ public struct CredentialsManager {
     private let storage: CredentialsStorage
     private let storeKey: String
     private let authentication: Authentication
-    private let dispatchQueue = DispatchQueue(label: "com.fusionAuth.credentialsmanager.serial")
+    private let dispatchQueue = DispatchQueue(label: "com.authKit.credentialsmanager.serial")
     private let dispatchGroup = DispatchGroup()
 
     public init(authentication: Authentication,

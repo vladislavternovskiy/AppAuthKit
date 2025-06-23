@@ -34,7 +34,7 @@ public struct FusionRequest<T, E: FusionAuthAPIError>: Requestable {
     let headers: [String: String]
     let contentType: ContentType
 
-    init(session: URLSession, url: URL, method: String, handle: @escaping (FusionResponse<E>, Callback) -> Void, parameters: [String: Any] = [:], headers: [String: String] = [:], contentType: ContentType) {
+    public init(session: URLSession, url: URL, method: String, handle: @escaping (FusionResponse<E>, Callback) -> Void, parameters: [String: Any] = [:], headers: [String: String] = [:], contentType: ContentType) {
         self.session = session
         self.url = url
         self.method = method

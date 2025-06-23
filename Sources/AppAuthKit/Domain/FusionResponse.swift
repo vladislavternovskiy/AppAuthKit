@@ -17,7 +17,7 @@ func string(_ data: Data?) -> String? {
     return String(data: data, encoding: .utf8)
 }
 
-struct FusionResponse<E: FusionAuthAPIError> {
+public struct FusionResponse<E: FusionAuthAPIError> {
     let data: Data?
     let response: HTTPURLResponse?
     let error: Error?
