@@ -7,18 +7,18 @@
 
 import Foundation
 
-let unknownError = "fusion.api.internal_error.unknown"
-let nonJSONError = "fusion.api.internal_error.plain"
-let emptyBodyError = "fusion.api.internal_error.empty"
+let unknownError = "api.internal_error.unknown"
+let nonJSONError = "api.internal_error.plain"
+let emptyBodyError = "api.internal_error.empty"
 
-public protocol FusionAuthError: LocalizedError, CustomDebugStringConvertible {
+public protocol AuthError: LocalizedError, CustomDebugStringConvertible {
 
     /// The underlying `Error` value, if any.
     var cause: Error? { get }
 
 }
 
-public extension FusionAuthError {
+public extension AuthError {
 
     /// The underlying `Error` value, if any. Defaults to `nil`.
     var cause: Error? { return nil }
@@ -35,7 +35,7 @@ public extension FusionAuthError {
 
 }
 
-extension FusionAuthError {
+extension AuthError {
 
     func appendCause(to errorMessage: String) -> String {
         guard let cause = self.cause else {
@@ -49,7 +49,7 @@ extension FusionAuthError {
 }
 
 /// Generic representation of Fusion API errors.
-public protocol FusionAuthAPIError: FusionAuthError {
+public protocol AuthAPIError: AuthError {
 
     /// Additional information about the error.
     var info: [String: Any] { get }
@@ -71,7 +71,7 @@ public protocol FusionAuthAPIError: FusionAuthError {
 
 }
 
-extension FusionAuthAPIError {
+extension AuthAPIError {
 
     init(info: [String: Any], statusCode: Int = 0) {
         self.init(info: info, statusCode: statusCode)
@@ -94,7 +94,7 @@ extension FusionAuthAPIError {
         self.init(info: info, statusCode: statusCode)
     }
 
-    init(from response: FusionResponse<Self>) {
+    init(from response: AuthResponse<Self>) {
         self.init(description: string(response.data), statusCode: response.response?.statusCode ?? 0)
     }
 }

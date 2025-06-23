@@ -12,7 +12,7 @@ enum DateDecodingStrategy {
     case since1970
 }
 
-func plainJson(from response: FusionResponse<AuthenticationError>, callback: FusionRequest<[String: Any], AuthenticationError>.Callback) {
+func plainJson(from response: AuthResponse<AuthenticationError>, callback: AuthRequest<[String: Any], AuthenticationError>.Callback) {
     do {
         if let dictionary = try response.result() as? [String: Any] {
             callback(.success(dictionary))
@@ -27,16 +27,16 @@ func plainJson(from response: FusionResponse<AuthenticationError>, callback: Fus
 }
 
 public func codable<T: Codable>(
-    from response: FusionResponse<AuthenticationError>,
-    callback: FusionRequest<T, AuthenticationError>.Callback
+    from response: AuthResponse<AuthenticationError>,
+    callback: AuthRequest<T, AuthenticationError>.Callback
 ) {
     codable(from: response, dateDecodingStrategy: .sinceNow, callback: callback)
 }
 
 func codable<T: Codable>(
-    from response: FusionResponse<AuthenticationError>,
+    from response: AuthResponse<AuthenticationError>,
     dateDecodingStrategy: DateDecodingStrategy,
-    callback: FusionRequest<T, AuthenticationError>.Callback) {
+    callback: AuthRequest<T, AuthenticationError>.Callback) {
     do {
         if let dictionary = try response.result() as? [String: Any] {
             let data = try JSONSerialization.data(withJSONObject: dictionary)
@@ -64,7 +64,7 @@ func codable<T: Codable>(
     }
 }
 
-func authenticationObject<T: JSONObjectPayload>(from response: FusionResponse<AuthenticationError>, callback: FusionRequest<T, AuthenticationError>.Callback) {
+func authenticationObject<T: JSONObjectPayload>(from response: AuthResponse<AuthenticationError>, callback: AuthRequest<T, AuthenticationError>.Callback) {
     do {
         if let dictionary = try response.result() as? [String: Any], let object = T(json: dictionary) {
             callback(.success(object))
@@ -78,7 +78,7 @@ func authenticationObject<T: JSONObjectPayload>(from response: FusionResponse<Au
     }
 }
 
-public func noBody(from response: FusionResponse<AuthenticationError>, callback: FusionRequest<Void, AuthenticationError>.Callback) {
+public func noBody(from response: AuthResponse<AuthenticationError>, callback: AuthRequest<Void, AuthenticationError>.Callback) {
     do {
         let result = try response.result()
         if let dict = result as? [String: Any] {

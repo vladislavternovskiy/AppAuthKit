@@ -8,7 +8,7 @@
 import Foundation
 
 /// Represents an error during a Credentials Manager operation.
-public struct CredentialsManagerError: FusionAuthError {
+public struct CredentialsManagerError: AuthError {
 
     enum Code: Equatable {
         case noCredentials

@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct AuthenticationError: FusionAuthAPIError {
+public struct AuthenticationError: AuthAPIError {
 
     /// Additional information about the error.
     public let info: [String: Any]

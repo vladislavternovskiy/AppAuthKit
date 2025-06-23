@@ -10,7 +10,7 @@ import Combine
 
 protocol Requestable {
     associatedtype ResultType
-    associatedtype ErrorType: FusionAuthAPIError
+    associatedtype ErrorType: AuthAPIError
 
     func start(_ callback: @escaping (Result<ResultType, ErrorType>) -> Void)
 }
@@ -20,7 +20,7 @@ public enum ContentType: String {
     case urlEncoded = "application/x-www-form-urlencoded"
 }
 
-public struct FusionRequest<T, E: FusionAuthAPIError>: Requestable {
+public struct AuthRequest<T, E: AuthAPIError>: Requestable {
     /**
      The callback closure type for the request.
      */
@@ -29,12 +29,12 @@ public struct FusionRequest<T, E: FusionAuthAPIError>: Requestable {
     let session: URLSession
     let url: URL
     let method: String
-    let handle: (FusionResponse<E>, Callback) -> Void
+    let handle: (AuthResponse<E>, Callback) -> Void
     let parameters: [String: Any]
     let headers: [String: String]
     let contentType: ContentType
 
-    public init(session: URLSession, url: URL, method: String, handle: @escaping (FusionResponse<E>, Callback) -> Void, parameters: [String: Any] = [:], headers: [String: String] = [:], contentType: ContentType) {
+    public init(session: URLSession, url: URL, method: String, handle: @escaping (AuthResponse<E>, Callback) -> Void, parameters: [String: Any] = [:], headers: [String: String] = [:], contentType: ContentType) {
         self.session = session
         self.url = url
         self.method = method
@@ -83,7 +83,7 @@ public struct FusionRequest<T, E: FusionAuthAPIError>: Requestable {
             if let data = data, let responseBody = String(data: data, encoding: .utf8) {
                 debugPrint("🔵 Response Body: " + responseBody)
             }
-            handler(FusionResponse(data: data, response: response as? HTTPURLResponse, error: error), callback)
+            handler(AuthResponse(data: data, response: response as? HTTPURLResponse, error: error), callback)
         })
         task.resume()
     }
@@ -91,7 +91,7 @@ public struct FusionRequest<T, E: FusionAuthAPIError>: Requestable {
     public func parameters(_ extraParameters: [String: Any]) -> Self {
         let parameters = extraParameters.merging(self.parameters) {(current, _) in current}
 
-        return FusionRequest(
+        return AuthRequest(
             session: self.session,
             url: self.url,
             method: self.method,
@@ -105,7 +105,7 @@ public struct FusionRequest<T, E: FusionAuthAPIError>: Requestable {
     public func headers(_ extraHeaders: [String: String]) -> Self {
         let headers = extraHeaders.merging(self.headers) {(current, _) in current}
 
-        return FusionRequest(
+        return AuthRequest(
             session: self.session,
             url: self.url,
             method: self.method,
@@ -119,7 +119,7 @@ public struct FusionRequest<T, E: FusionAuthAPIError>: Requestable {
 
 // MARK: - Combine
 
-public extension FusionRequest {
+public extension AuthRequest {
 
     func start() -> AnyPublisher<T, E> {
         return Deferred { Future(self.start) }.eraseToAnyPublisher()
@@ -129,7 +129,7 @@ public extension FusionRequest {
 // MARK: - Async/Await
 
 #if canImport(_Concurrency)
-public extension FusionRequest {
+public extension AuthRequest {
 
     func start() async throws -> T {
         return try await withCheckedThrowingContinuation { continuation in
