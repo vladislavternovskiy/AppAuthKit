@@ -7,6 +7,8 @@
 
 import Foundation
 
+public let defaultTokenExpPeriod: TimeInterval = 60*60*24*365
+
 private struct _StructCredentials {
     let accessToken: String
     let refreshToken: String?
@@ -19,8 +21,6 @@ public final class Credentials: NSObject, Codable {
     public let refreshToken: String?
     public let userId: String
     public let expiresIn: Date
-    
-    private let defaultExpPeriod: TimeInterval = 60*60*24*365
     
     public init(accessToken: String, refreshToken: String?, userId: String, expiresIn: Date) {
         self.accessToken = accessToken
@@ -45,7 +45,7 @@ public final class Credentials: NSObject, Codable {
             expiresIn = exp
         } else {
             let jwt = try? decode(jwt: accessToken)
-            expiresIn = jwt?.expiresAt ?? Date().addingTimeInterval(defaultExpPeriod)
+            expiresIn = jwt?.expiresAt ?? Date().addingTimeInterval(defaultTokenExpPeriod)
         }
     }
 }
