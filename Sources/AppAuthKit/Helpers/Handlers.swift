@@ -26,7 +26,7 @@ func plainJson(from response: FusionResponse<AuthenticationError>, callback: Fus
     }
 }
 
-func codable<T: Codable>(
+public func codable<T: Codable>(
     from response: FusionResponse<AuthenticationError>,
     callback: FusionRequest<T, AuthenticationError>.Callback
 ) {
