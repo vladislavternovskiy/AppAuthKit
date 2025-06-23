@@ -40,13 +40,12 @@ public struct CredentialsManager {
                        _ callback: @escaping (CredentialsManagerResult<Void>) -> Void) {
         guard let data = self.storage.getEntry(forKey: self.storeKey),
               let credentials = try? NSKeyedUnarchiver.unarchivedObject(ofClass: Credentials.self, from: data),
-              let refreshToken = credentials.refreshToken else {
-                  _ = self.clear()
-                  return callback(.success(()))
+              let refreshToken = credentials.refreshToken,
+        let request = authentication.revoke(refreshToken: refreshToken) else {
+            _ = self.clear()
+            return callback(.success(()))
         }
-        self.authentication
-            .revoke(refreshToken: refreshToken)?
-            .headers(headers)
+        request.headers(headers)
             .start { result in
                 switch result {
                 case .failure(let error):
