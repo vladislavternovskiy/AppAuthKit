@@ -45,7 +45,7 @@ public struct CredentialsManager {
                   return callback(.success(()))
         }
         self.authentication
-            .revoke(refreshToken: refreshToken)
+            .revoke(refreshToken: refreshToken)?
             .headers(headers)
             .start { result in
                 switch result {
@@ -194,7 +194,7 @@ public struct CredentialsManager {
                 }
                 
                 self.authentication
-                    .renewPasswordless(withRefreshToken: refreshToken)
+                    .renewPasswordless(withRefreshToken: refreshToken)?
                     .parameters(parameters)
                     .headers(headers)
                     .start { result in

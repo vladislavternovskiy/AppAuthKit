@@ -137,7 +137,7 @@ public struct FusionAuthAuthentication: Authentication {
         )
     }
     
-    public func renewPasswordless(withRefreshToken refreshToken: String) -> FusionRequest<OtpCredentials, AuthenticationError> {
+    public func renewPasswordless(withRefreshToken refreshToken: String) -> FusionRequest<OtpCredentials, AuthenticationError>? {
         let payload: [String: Any] = [
             "refresh_token": refreshToken
         ]
@@ -152,7 +152,7 @@ public struct FusionAuthAuthentication: Authentication {
         .headers(["Authorization": apiKey])
     }
     
-    public func revoke(refreshToken: String) -> FusionRequest<Void, AuthenticationError> {
+    public func revoke(refreshToken: String) -> FusionRequest<Void, AuthenticationError>? {
         let payload: [String: Any] = [
             "refresh_token": refreshToken,
             "global": true

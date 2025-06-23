@@ -9,9 +9,9 @@ import Foundation
 public protocol Renewable {
     func renew(withRefreshToken refreshToken: String) -> FusionRequest<Credentials, AuthenticationError>
     
-    func renewPasswordless(withRefreshToken refreshToken: String) -> FusionRequest<OtpCredentials, AuthenticationError>
+    func renewPasswordless(withRefreshToken refreshToken: String) -> FusionRequest<OtpCredentials, AuthenticationError>?
     
-    func revoke(refreshToken: String) -> FusionRequest<Void, AuthenticationError>
+    func revoke(refreshToken: String) -> FusionRequest<Void, AuthenticationError>?
 }
 
 public protocol Authentication: Renewable {
