@@ -30,7 +30,7 @@ public struct Authenticator: Authentication {
     }
     
     public func login(usernameOrEmail username: String, password: String) -> AuthRequest<Credentials, AuthenticationError> {
-        let url = URL(string: "/auth/login", relativeTo: url)!
+        let url = URL(string: "/api/auth/login", relativeTo: url)!
         let payload: [String: Any] = [
             "email": username,
             "password": password,
@@ -48,7 +48,7 @@ public struct Authenticator: Authentication {
     
     public func forgotPassword(email: String) -> AuthRequest<Void, AuthenticationError> {
         let payload: [String: Any] = ["email": email]
-        let resetPassword = URL(string: "/auth/forgot_password", relativeTo: url)!
+        let resetPassword = URL(string: "/api/auth/forgot_password", relativeTo: url)!
         return AuthRequest(session: session,
                            url: resetPassword,
                            method: "POST",
@@ -61,7 +61,7 @@ public struct Authenticator: Authentication {
         let payload: [String: Any] = [
             "refresh_token": refreshToken
         ]
-        let oauthToken = URL(string: "/auth/refresh_token", relativeTo: url)!
+        let oauthToken = URL(string: "/api/auth/refresh_token", relativeTo: url)!
         return AuthRequest(session: session,
                            url: oauthToken,
                            method: "POST",
