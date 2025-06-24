@@ -13,6 +13,8 @@ public protocol Renewable {
 public protocol Authentication: Renewable {
     
     func login(usernameOrEmail username: String, password: String) -> AuthRequest<Credentials, AuthenticationError>
+    
+    func loginWithApple(idToken: String) -> AuthRequest<Credentials, AuthenticationError>
 
     func forgotPassword(email: String) -> AuthRequest<Void, AuthenticationError>
 }

@@ -46,6 +46,23 @@ public struct Authenticator: Authentication {
                            contentType: .json)
     }
     
+    public func loginWithApple(idToken: String) -> AuthRequest<Credentials, AuthenticationError> {
+        let url = URL(string: "/api/auth/login", relativeTo: url)!
+        let payload: [String: Any] = [
+            "email": "",
+            "password": "",
+            "token": idToken,
+            "provider": "apple",
+        ]
+        
+        return AuthRequest(session: session,
+                           url: url,
+                           method: "POST",
+                           handle: codable,
+                           parameters: payload,
+                           contentType: .json)
+    }
+    
     public func forgotPassword(email: String) -> AuthRequest<Void, AuthenticationError> {
         let payload: [String: Any] = ["email": email]
         let resetPassword = URL(string: "/api/auth/forgot_password", relativeTo: url)!
