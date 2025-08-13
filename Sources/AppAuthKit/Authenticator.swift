@@ -64,7 +64,7 @@ public struct Authenticator: Authentication {
     }
     
     public func signup(name: String, email: String, password: String) -> AuthRequest<Credentials, AuthenticationError> {
-        let url = URL(string: "/api/auth/login", relativeTo: url)!
+        let url = URL(string: "/api/auth/signup", relativeTo: url)!
         let payload: [String: Any] = [
             "name": name,
             "email": email,
