@@ -116,7 +116,7 @@ public struct Authenticator: Authentication {
     
     public func renew(withRefreshToken refreshToken: String) -> AuthRequest<Credentials, AuthenticationError> {
         let payload: [String: Any] = [
-            "refresh_token": refreshToken
+            "refreshToken": refreshToken
         ]
         let oauthToken = URL(string: "/api/auth/refresh_token", relativeTo: url)!
         return AuthRequest(session: session,
