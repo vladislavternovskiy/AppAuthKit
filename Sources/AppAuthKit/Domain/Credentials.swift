@@ -14,6 +14,8 @@ private struct _StructCredentials {
     let refreshToken: String?
     let userId: String
     let expiresIn: Date
+    let sessionTierName: String
+    let sessionTierLevel: Int
 }
 
 public final class Credentials: NSObject, Codable {
@@ -21,32 +23,64 @@ public final class Credentials: NSObject, Codable {
     public let refreshToken: String?
     public let userId: String
     public let expiresIn: Date
-    
+    public let sessionTierName: String
+    public let sessionTierLevel: Int
+
     public init(accessToken: String, refreshToken: String?, userId: String, expiresIn: Date) {
         self.accessToken = accessToken
         self.refreshToken = refreshToken
         self.userId = userId
         self.expiresIn = expiresIn
+        let tier = Self.resolveSessionTier(from: accessToken)
+        self.sessionTierName = tier.name
+        self.sessionTierLevel = tier.level
     }
-    
+
     private enum CodingKeys: String, CodingKey {
-        case accessToken = "accessToken"
-        case expiresIn = "expiresIn"
-        case userId = "userId"
-        case refreshToken = "refreshToken"
+        case accessToken
+        case expiresIn
+        case userId
+        case refreshToken
     }
-    
+
     public init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         accessToken = try values.decode(String.self, forKey: .accessToken)
         refreshToken = try? values.decode(String.self, forKey: .refreshToken)
         userId = try values.decode(String.self, forKey: .userId)
-        if let exp = try? values.decode(Date.self, forKey: .expiresIn) {
-            expiresIn = exp
+
+        let jwt = try? decode(jwt: accessToken)
+        let exp = jwt?.expiresAt ?? (try? values.decode(Date.self, forKey: .expiresIn))
+        expiresIn =  exp ?? Date().addingTimeInterval(defaultTokenExpPeriod)
+
+        if let jwt {
+            let tier = Self.resolveSessionTier(jwt: jwt)
+            sessionTierName = tier.name
+            sessionTierLevel = tier.level
         } else {
-            let jwt = try? decode(jwt: accessToken)
-            expiresIn = jwt?.expiresAt ?? Date().addingTimeInterval(defaultTokenExpPeriod)
+            sessionTierName = "free"
+            sessionTierLevel = 0
         }
+    }
+}
+
+private extension Credentials {
+    static func resolveSessionTier(from accessToken: String) -> (name: String, level: Int) {
+        guard let jwt = try? decode(jwt: accessToken) else {
+            return ("free", 0)
+        }
+
+        return resolveSessionTier(jwt: jwt)
+    }
+
+    static func resolveSessionTier(jwt: JWT) -> (name: String, level: Int) {
+        let normalizedName = jwt.sessionTierName
+        let parsedLevel = jwt.sessionTierLevel
+        let level = max(parsedLevel ?? (normalizedName == "unlimited" ? 1 : 0), 0)
+        let name = (normalizedName?.isEmpty == false ? normalizedName : nil)
+            ?? (level > 0 ? "unlimited" : "free")
+
+        return (name, level)
     }
 }
 
@@ -60,7 +94,7 @@ extension Credentials: NSSecureCoding {
         let refreshToken = aDecoder.decodeObject(of: NSString.self, forKey: "refreshToken")
         let expiresIn = aDecoder.decodeObject(of: NSDate.self, forKey: "expiresIn")
         let userId = aDecoder.decodeObject(of: NSString.self, forKey: "userId")
-        
+
         self.init(accessToken: accessToken as String? ?? "",
                   refreshToken: refreshToken as String? ?? "",
                   userId: userId as String? ?? "",

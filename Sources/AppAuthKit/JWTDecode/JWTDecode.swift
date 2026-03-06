@@ -42,6 +42,13 @@ struct DecodedJWT: JWT {
     var issuedAt: Date? { return claim(name: "iat").date }
     var notBefore: Date? { return claim(name: "nbf").date }
     var identifier: String? { return claim(name: "jti").string }
+    var sessionTierName: String? {
+        claim(name: "tier")
+            .string?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+    }
+    var sessionTierLevel: Int? { return claim(name: "tier_level").integer }
 
     var expired: Bool {
         guard let date = self.expiresAt else {

@@ -35,6 +35,12 @@ public protocol JWT {
     /// Value of the `jti` claim, if available.
     var identifier: String? { get }
 
+    /// Value of the `tier` claim, normalized for app tier checks.
+    var sessionTierName: String? { get }
+
+    /// Value of the `tier_level` claim converted to `Int`.
+    var sessionTierLevel: Int? { get }
+
     /// Checks if the JWT is currently expired using the `exp` claim. If the claim is not present the JWT will be
     /// deemed unexpired.
     var expired: Bool { get }
