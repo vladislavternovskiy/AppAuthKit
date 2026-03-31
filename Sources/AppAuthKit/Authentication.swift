@@ -8,6 +8,7 @@ import Foundation
 
 public protocol Renewable {
     func renew(withRefreshToken refreshToken: String) -> AuthRequest<Credentials, AuthenticationError>
+    func forceRefresh(withAccessToken accessToken: String) -> AuthRequest<ForceRefreshResponse, AuthenticationError>
 }
 
 public protocol Authentication: Renewable {

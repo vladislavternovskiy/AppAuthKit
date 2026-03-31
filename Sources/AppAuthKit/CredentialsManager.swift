@@ -60,6 +60,47 @@ public struct CredentialsManager {
         retrieveCredentials(parameters: parameters, headers: headers, forceRenewal: true, callback: callback)
     }
 
+    public func forceRefresh(callback: @escaping (CredentialsManagerResult<Credentials>) -> Void) {
+        self.dispatchQueue.async {
+            self.dispatchGroup.enter()
+
+            DispatchQueue.global(qos: .userInitiated).async {
+                guard let credentials = retrieveCredentials() else {
+                    self.dispatchGroup.leave()
+                    return callback(.failure(.noCredentials))
+                }
+
+                self.authentication
+                    .forceRefresh(withAccessToken: credentials.accessToken)
+                    .start { result in
+                        switch result {
+                        case .success(let response):
+                            let jwt = try? decode(jwt: response.accessToken)
+                            let expiresIn = jwt?.expiresAt ?? Date().addingTimeInterval(defaultTokenExpPeriod)
+                            let newCredentials = Credentials(
+                                accessToken: response.accessToken,
+                                refreshToken: credentials.refreshToken,
+                                userId: credentials.userId,
+                                expiresIn: expiresIn
+                            )
+                            if !self.store(credentials: newCredentials) {
+                                self.dispatchGroup.leave()
+                                callback(.failure(CredentialsManagerError(code: .storeFailed)))
+                            } else {
+                                self.dispatchGroup.leave()
+                                callback(.success(newCredentials))
+                            }
+                        case .failure(let error):
+                            self.dispatchGroup.leave()
+                            callback(.failure(CredentialsManagerError(code: .renewFailed, cause: error)))
+                        }
+                    }
+            }
+
+            self.dispatchGroup.wait()
+        }
+    }
+
     private func retrieveCredentials() -> Credentials? {
         guard let data = storage.getEntry(forKey: storeKey) else { return nil }
         return try? NSKeyedUnarchiver.unarchivedObject(ofClass: Credentials.self, from: data)
@@ -160,6 +201,14 @@ public extension CredentialsManager {
             }
         }.eraseToAnyPublisher()
     }
+
+    func forceRefresh() -> AnyPublisher<Credentials, CredentialsManagerError> {
+        return Deferred {
+            Future { callback in
+                return self.forceRefresh(callback: callback)
+            }
+        }.eraseToAnyPublisher()
+    }
 }
 
 // MARK: - Async/Await
@@ -185,6 +234,14 @@ public extension CredentialsManager {
     func renew(parameters: [String: Any] = [:], headers: [String: String] = [:]) async throws -> Credentials {
         return try await withCheckedThrowingContinuation { continuation in
             self.renew(parameters: parameters, headers: headers, callback: continuation.resume)
+        }
+    }
+
+    /// Forces a token refresh using the current access token. Returns fresh credentials with updated tier claims.
+    /// **This method is thread-safe**.
+    func forceRefresh() async throws -> Credentials {
+        return try await withCheckedThrowingContinuation { continuation in
+            self.forceRefresh(callback: continuation.resume)
         }
     }
 }

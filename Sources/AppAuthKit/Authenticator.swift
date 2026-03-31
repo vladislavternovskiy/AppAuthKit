@@ -127,4 +127,14 @@ public struct Authenticator: Authentication {
                            contentType: .json
         )
     }
+
+    public func forceRefresh(withAccessToken accessToken: String) -> AuthRequest<ForceRefreshResponse, AuthenticationError> {
+        let forceRefreshURL = URL(string: "/api/auth/force_refresh", relativeTo: url)!
+        return AuthRequest(session: session,
+                           url: forceRefreshURL,
+                           method: "POST",
+                           handle: codable,
+                           headers: ["Authorization": "Bearer \(accessToken)"],
+                           contentType: .json)
+    }
 }
